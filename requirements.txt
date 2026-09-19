@@ -1,0 +1,4 @@
+google
+python-dotenv
+fastapi
+uvicorn

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auvepua</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon"><img src="/static/logo.png" alt="Logo"></div>
+                <span>Auvepua</span>
+            </div>
+
+            <div class="status">
+                <span class="status-dot"></span>
+                Online
+            </div>
+        </header>
+
+
+        <!-- Chat area -->
+        <main class="chat-container">
+
+            <div class="welcome">
+                <div class="welcome-icon"><img src="/static/welcome.png" alt="welcome"></div>
+
+                <h1>How can I help you?</h1>
+
+                <p>
+                    Ask me anything and I'll do my best to help.
+                </p>
+            </div>
+
+            <!-- Response will appear here -->
+            <div id="chat"></div>
+
+        </main>
+
+
+        <!-- Input area -->
+        <footer class="input-area">
+
+            <form id="chatForm">
+
+                <div class="input-box">
+
+                    <textarea id="prompt" placeholder="Message AI Assistant..." rows="1"></textarea>
+
+                    <button id="sendButton" type="submit">
+                        ↑
+                    </button>
+
+                </div>
+
+                <p class="disclaimer">
+                    AI Assistant can make mistakes. Check important information.
+                </p>
+
+            </form>
+
+        </footer>
+
+    </div>
+
+
+    <script>
+
+        const form = document.getElementById("chatForm");
+        const input = document.getElementById("prompt");
+        const chat = document.getElementById("chat");
+        const sendButton = document.getElementById("sendButton");
+
+
+        form.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            const prompt = input.value.trim();
+
+            if (!prompt) {
+                return;
+            }
+
+
+            // Display user's message
+            const userMessage = document.createElement("div");
+
+            userMessage.className = "message user-message";
+
+            userMessage.innerHTML = `
+                <div class="message-content">
+                    ${prompt}
+                </div>
+            `;
+
+            chat.appendChild(userMessage);
+
+
+            // Clear input
+            input.value = "";
+
+
+            // Disable button while waiting
+            sendButton.disabled = true;
+            sendButton.innerHTML = "•••";
+
+
+            try {
+
+                const response = await fetch("/prompt", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: prompt
+                    })
+
+                });
+
+
+                const data = await response.text();
+
+
+                // Display AI response
+                const aiMessage = document.createElement("div");
+
+                aiMessage.className = "message ai-message";
+
+                aiMessage.innerHTML = `
+                    <div class="ai-icon">✦</div>
+                    <div class="message-content">
+                        ${data}
+                    </div>
+                `;
+
+                chat.appendChild(aiMessage);
+
+
+            } catch (error) {
+
+                const errorMessage = document.createElement("div");
+
+                errorMessage.className = "message ai-message";
+
+                errorMessage.innerHTML = `
+                    <div class="ai-icon">!</div>
+                    <div class="message-content">
+                        Unable to connect to the server.
+                    </div>
+                `;
+
+                chat.appendChild(errorMessage);
+
+                console.error(error);
+
+            }
+
+
+            sendButton.disabled = false;
+            sendButton.innerHTML = "↑";
+
+
+            // Scroll to latest message
+            chat.scrollTop = chat.scrollHeight;
+
+        });
+
+
+        // Enter = send
+        // Shift + Enter = new line
+        input.addEventListener("keydown", function (event) {
+
+            if (event.key === "Enter" && !event.shiftKey) {
+
+                event.preventDefault();
+
+                form.requestSubmit();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
